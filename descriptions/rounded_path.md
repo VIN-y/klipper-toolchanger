@@ -23,6 +23,7 @@ next position. `Distance` is the maxiumum deflection distance from this point.
 # Usage
 
 Example usage:
+
 ```
     ROUNDED_G0 Y=30 D=5 F=1000
     ROUNDED_G0 X=100 D=30
@@ -31,8 +32,10 @@ Example usage:
     ROUNDED_G0 Y=200 D=30
     ROUNDED_G0 X=100 Y=100 Z=10 D=0     
 ```
+
 The rounded path chain **must always end with D=0** to allow computing the final move.
 
 # Limitations
+
 This currently only optimizes on segment by segment basis, 
 practically rounding radius for each corner is limited by the shortest distance to previous/next point.
