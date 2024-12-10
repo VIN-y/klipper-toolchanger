@@ -16,6 +16,7 @@ This extension provide the means to quickly convert the config from a tool-chang
 1. The recording point is marked with `#;<` and can be closed with `#;>`.
 
 2. The command relies on a macro variable, `variable_dock:`, in **printer.cfg** to determine where to save the config to. Therefore, it requires the following `[gcode_macro _home]` macro in **printer.cfg**, within the session that will be toggle in and out:
+2. The command relies on a macro variable, `variable_dock:`, in **printer.cfg** to determine where to save the config to. Therefore, it requires the following macro in **printer.cfg**, among the session variables:
    
    ```
    [gcode_macro _home]
@@ -24,6 +25,8 @@ This extension provide the means to quickly convert the config from a tool-chang
    variable_zh: 10.0
    variable_dock: True
    gcode:
+       RESPOND TYPE=echo MSG='Print area centre: {xh}, {yh}, {zh}'
+       RESPOND TYPE=echo MSG='Number of TH: {no_of_toolhead}'
    ```
    
    This variable `variable_dock:` can be either `True` for `False`.
@@ -39,6 +42,7 @@ This extension provide the means to quickly convert the config from a tool-chang
 2. If either `config/config_wt_dock.cfg` and `config/config_no_dock.cfg` are not yet available. Please build that config (in **printer.cfg**), with the right `variable_dock:` value,  then use `SAVE_CONFIG_MODE` to create the save file.
 
 3. The command needs to be follow up with `FIRMWARE_RESTART` for the printer to implement the new settings. To make it easier, it is suggested that you have the following macro for your printer:
+3. The command needs to be follow up with `FIRMWARE_RESTART` it implement the new settings. It is suggested that you have the following macro in your config:
    
    ```
    [gcode_macro PRINTER_CONFIG_TOGGLE]
