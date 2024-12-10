@@ -1,8 +1,9 @@
 #!/bin/bash
 
-REPO="DraftShift/klipper-toolchanger.git"
+REPO="VIN-y/klipper-toolchanger.git"
 SERVICE="/etc/systemd/system/ToolChanger.service"
 CONFIG_PATH="${HOME}/printer_data/config"
+SETTINGS_PATH="${HOME}/printer_data"
 KLIPPER_PATH="${HOME}/klipper"
 INSTALL_PATH="${HOME}/klipper-toolchanger"
 
@@ -122,6 +123,18 @@ function copy_examples {
     echo
 }
 
+function copy_settings {
+    echo -n "[INSTALL] Copying [toolchanger-settings.cfg] to Klipper..."
+    for file in "${INSTALL_PATH}"/toolchanger-settings.cfg; do
+        if ! cp -n ${file} "${SETTINGS_PATH}"/; then
+            echo " failed!"
+            exit -1
+        fi
+    done
+    echo " complete!"
+    echo
+}
+
 function add_updater {
     if [ ! -f "${CONFIG_PATH}"/moonraker.conf ]; then
         echo "[INSTALL] No moonraker config found."
@@ -228,7 +241,8 @@ remove_links
 if [ $doinstall -gt 0 ]; then
     link_extension
     link_macros
-    copy_examples
+    # copy_examples
+    copy_settings
     add_updater
     install_service
     check_includes
