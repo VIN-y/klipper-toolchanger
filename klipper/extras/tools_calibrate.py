@@ -114,11 +114,11 @@ class ToolsCalibrate:
         location = self.locate_sensor(gcmd)
         self.last_result = [location[i] - self.sensor_location[i] for i in range(3)]
 
-        self.gcode.respond_info("Paste into your config file for tool:\n"
-                                "gcode_x_offset: %.6f\n"
-                                "gcode_y_offset: %.6f\n"
-                                "gcode_z_offset: %.6f\n"
-                                % (self.last_result[0], self.last_result[1], self.last_result[2]))
+        # self.gcode.respond_info("Paste into your config file for tool:\n"
+        #                         "gcode_x_offset: %.6f\n"
+        #                         "gcode_y_offset: %.6f\n"
+        #                         "gcode_z_offset: %.6f\n"
+        #                         % (self.last_result[0], self.last_result[1], self.last_result[2]))
 
     cmd_TOOL_CALIBRATE_SAVE_TOOL_OFFSET_help = "Save tool offset calibration to config"
 
