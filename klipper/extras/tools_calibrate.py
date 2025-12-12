@@ -148,6 +148,7 @@ class ToolsCalibrate:
         # back to start pos
         toolhead.move(start_pos, self.travel_speed)
         toolhead.set_position(start_pos)
+        return self.last_probe_offset
 
     def get_status(self, eventtime):
         return {'last_result': self.last_result,
@@ -229,11 +230,9 @@ class PrinterProbeMultiAxis:
         if 'axis_minimum' not in kin_status or 'axis_minimum' not in kin_status:
             raise self.gcode.error("Tools calibrate only works with cartesian kinematics")
         if sense > 0:
-            pos[axis] = min(pos[axis] + max_distance,
-                            kin_status['axis_maximum'][axis])
+            pos[axis] = min(pos[axis] + max_distance, kin_status['axis_maximum'][axis])
         else:
-            pos[axis] = max(pos[axis] - max_distance,
-                            kin_status['axis_minimum'][axis])
+            pos[axis] = max(pos[axis] - max_distance, kin_status['axis_minimum'][axis])
         return pos
 
     def _move(self, coord, speed):
