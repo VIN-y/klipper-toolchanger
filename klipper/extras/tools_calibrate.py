@@ -79,14 +79,12 @@ class ToolsCalibrate:
         downPos = self.probe_multi_axis.run_probe("z-", gcmd, samples=1)
         center_x, center_y = self.calibrate_xy(toolhead, downPos, gcmd, samples=1)
 
-        toolhead.manual_move([None, None, downPos[2] + self.lift_z],
-                             self.lift_speed)
+        toolhead.manual_move([None, None, downPos[2] + self.lift_z], self.lift_speed)
         toolhead.manual_move([center_x, center_y, None], self.travel_speed)
         center_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[2]
+
         # Now redo X and Y, since we have a more accurate center.
-        center_x, center_y = self.calibrate_xy(toolhead,
-                                               [center_x, center_y, center_z],
-                                               gcmd)
+        center_x, center_y = self.calibrate_xy(toolhead, [center_x, center_y, center_z], gcmd)
 
         # rest above center
         position[0] = center_x
@@ -103,8 +101,7 @@ class ToolsCalibrate:
     def cmd_TOOL_LOCATE_SENSOR(self, gcmd):
         self.last_result = self.locate_sensor(gcmd)
         self.sensor_location = self.last_result
-        self.gcode.respond_info("Sensor location at %.6f,%.6f,%.6f"
-                                % (self.last_result[0], self.last_result[1], self.last_result[2]))
+        self.gcode.respond_info("Sensor location at %.6f,%.6f,%.6f" % (self.last_result[0], self.last_result[1], self.last_result[2]))
 
     cmd_TOOL_CALIBRATE_TOOL_OFFSET_help = "Calibrate current tool offset relative to tool 0"
 
@@ -141,21 +138,21 @@ class ToolsCalibrate:
         toolhead = self.printer.lookup_object('toolhead')
         probe = self.printer.lookup_object(self.probe_name)
         start_pos = toolhead.get_position()
-        nozzle_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[
-            2]
+        nozzle_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[2]
         # now move down with the tool probe
         probe_session = probe.start_probe_session(gcmd)
         probe_session.run_probe(gcmd)
         probe_z = probe_session.pull_probed_results()[0][2]
         probe_session.end_probe_session()
-
+        # calculate z-offset
         z_offset = probe_z - nozzle_z + self.trigger_to_bottom_z
+        
         self.last_probe_offset = z_offset
-        self.gcode.respond_info(
-            "%s: z_offset: %.3f\n"
-            "The SAVE_CONFIG command will update the printer config file\n"
-            "with the above and restart the printer." 
-            % (self.probe_name, z_offset))
+        # self.gcode.respond_info(
+        #     "%s: z_offset: %.3f\n"
+        #     "The SAVE_CONFIG command will update the printer config file\n"
+        #     "with the above and restart the printer." 
+        #     % (self.probe_name, z_offset))
         config_name = gcmd.get("PROBE", default=self.probe_name)
         if config_name:
             configfile = self.printer.lookup_object('configfile')
