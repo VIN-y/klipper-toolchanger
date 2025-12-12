@@ -95,8 +95,7 @@ class ToolsCalibrate:
         toolhead.set_position(position)
         return [center_x, center_y, center_z]
 
-    cmd_TOOL_LOCATE_SENSOR_help = ("Locate the tool calibration sensor, "
-                                   "use with tool 0.")
+    cmd_TOOL_LOCATE_SENSOR_help = ("Locate the tool calibration sensor, use with tool 0.")
 
     def cmd_TOOL_LOCATE_SENSOR(self, gcmd):
         self.last_result = self.locate_sensor(gcmd)
@@ -110,12 +109,6 @@ class ToolsCalibrate:
             raise gcmd.error("No recorded sensor location, please run TOOL_LOCATE_SENSOR first")
         location = self.locate_sensor(gcmd)
         self.last_result = [location[i] - self.sensor_location[i] for i in range(3)]
-
-        # self.gcode.respond_info("Paste into your config file for tool:\n"
-        #                         "gcode_x_offset: %.6f\n"
-        #                         "gcode_y_offset: %.6f\n"
-        #                         "gcode_z_offset: %.6f\n"
-        #                         % (self.last_result[0], self.last_result[1], self.last_result[2]))
 
     cmd_TOOL_CALIBRATE_SAVE_TOOL_OFFSET_help = "Save tool offset calibration to config"
 
@@ -146,13 +139,8 @@ class ToolsCalibrate:
         probe_session.end_probe_session()
         # calculate z-offset
         z_offset = probe_z - nozzle_z + self.trigger_to_bottom_z
-        
+        # record the data
         self.last_probe_offset = z_offset
-        # self.gcode.respond_info(
-        #     "%s: z_offset: %.3f\n"
-        #     "The SAVE_CONFIG command will update the printer config file\n"
-        #     "with the above and restart the printer." 
-        #     % (self.probe_name, z_offset))
         config_name = gcmd.get("PROBE", default=self.probe_name)
         if config_name:
             configfile = self.printer.lookup_object('configfile')
@@ -226,7 +214,6 @@ class PrinterProbeMultiAxis:
             if "Timeout during endstop homing" in reason:
                 reason += HINT_TIMEOUT
             raise self.printer.command_error(reason)
-        # self.gcode.respond_info("probe at %.3f,%.3f is z=%.6f"
         self.gcode.respond_info("Probe made contact at %.6f,%.6f,%.6f"% (epos[0], epos[1], epos[2]))
         return epos[:3]
 
@@ -323,8 +310,7 @@ class ProbeEndstopWrapper:
         pin_params = ppins.lookup_pin(pin, can_invert=True, can_pullup=True)
         mcu = pin_params['chip']
         self.mcu_endstop = mcu.setup_pin('endstop', pin_params)
-        self.printer.register_event_handler('klippy:mcu_identify',
-                                            self._handle_mcu_identify)
+        self.printer.register_event_handler('klippy:mcu_identify', self._handle_mcu_identify)
         # Wrappers
         self.get_mcu = self.mcu_endstop.get_mcu
         self.add_stepper = self.mcu_endstop.add_stepper
