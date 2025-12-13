@@ -148,7 +148,7 @@ class ToolsCalibrate:
         # back to start pos
         toolhead.move(start_pos, self.travel_speed)
         toolhead.set_position(start_pos)
-        return self.last_probe_offset
+        # return self.last_probe_offset
 
     def get_status(self, eventtime):
         return {'last_result': self.last_result,
