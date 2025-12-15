@@ -79,14 +79,12 @@ class ToolsCalibrate:
         downPos = self.probe_multi_axis.run_probe("z-", gcmd, samples=1)
         center_x, center_y = self.calibrate_xy(toolhead, downPos, gcmd, samples=1)
 
-        toolhead.manual_move([None, None, downPos[2] + self.lift_z],
-                             self.lift_speed)
+        toolhead.manual_move([None, None, downPos[2] + self.lift_z], self.lift_speed)
         toolhead.manual_move([center_x, center_y, None], self.travel_speed)
         center_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[2]
+
         # Now redo X and Y, since we have a more accurate center.
-        center_x, center_y = self.calibrate_xy(toolhead,
-                                               [center_x, center_y, center_z],
-                                               gcmd)
+        center_x, center_y = self.calibrate_xy(toolhead, [center_x, center_y, center_z], gcmd)
 
         # rest above center
         position[0] = center_x
@@ -97,14 +95,12 @@ class ToolsCalibrate:
         toolhead.set_position(position)
         return [center_x, center_y, center_z]
 
-    cmd_TOOL_LOCATE_SENSOR_help = ("Locate the tool calibration sensor, "
-                                   "use with tool 0.")
+    cmd_TOOL_LOCATE_SENSOR_help = ("Locate the tool calibration sensor, use with tool 0.")
 
     def cmd_TOOL_LOCATE_SENSOR(self, gcmd):
         self.last_result = self.locate_sensor(gcmd)
         self.sensor_location = self.last_result
-        self.gcode.respond_info("Sensor location at %.6f,%.6f,%.6f"
-                                % (self.last_result[0], self.last_result[1], self.last_result[2]))
+        self.gcode.respond_info("Sensor location at %.6f,%.6f,%.6f" % (self.last_result[0], self.last_result[1], self.last_result[2]))
 
     cmd_TOOL_CALIBRATE_TOOL_OFFSET_help = "Calibrate current tool offset relative to tool 0"
 
@@ -113,12 +109,6 @@ class ToolsCalibrate:
             raise gcmd.error("No recorded sensor location, please run TOOL_LOCATE_SENSOR first")
         location = self.locate_sensor(gcmd)
         self.last_result = [location[i] - self.sensor_location[i] for i in range(3)]
-
-        self.gcode.respond_info("Paste into your config file for tool:\n"
-                                "gcode_x_offset: %.6f\n"
-                                "gcode_y_offset: %.6f\n"
-                                "gcode_z_offset: %.6f\n"
-                                % (self.last_result[0], self.last_result[1], self.last_result[2]))
 
     cmd_TOOL_CALIBRATE_SAVE_TOOL_OFFSET_help = "Save tool offset calibration to config"
 
@@ -141,21 +131,16 @@ class ToolsCalibrate:
         toolhead = self.printer.lookup_object('toolhead')
         probe = self.printer.lookup_object(self.probe_name)
         start_pos = toolhead.get_position()
-        nozzle_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[
-            2]
+        nozzle_z = self.probe_multi_axis.run_probe("z-", gcmd, speed_ratio=0.5)[2]
         # now move down with the tool probe
         probe_session = probe.start_probe_session(gcmd)
         probe_session.run_probe(gcmd)
         probe_z = probe_session.pull_probed_results()[0][2]
         probe_session.end_probe_session()
-
+        # calculate z-offset
         z_offset = probe_z - nozzle_z + self.trigger_to_bottom_z
+        # record the data
         self.last_probe_offset = z_offset
-        self.gcode.respond_info(
-            "%s: z_offset: %.3f\n"
-            "The SAVE_CONFIG command will update the printer config file\n"
-            "with the above and restart the printer." 
-            % (self.probe_name, z_offset))
         config_name = gcmd.get("PROBE", default=self.probe_name)
         if config_name:
             configfile = self.printer.lookup_object('configfile')
@@ -163,6 +148,7 @@ class ToolsCalibrate:
         # back to start pos
         toolhead.move(start_pos, self.travel_speed)
         toolhead.set_position(start_pos)
+        # return self.last_probe_offset
 
     def get_status(self, eventtime):
         return {'last_result': self.last_result,
@@ -229,7 +215,6 @@ class PrinterProbeMultiAxis:
             if "Timeout during endstop homing" in reason:
                 reason += HINT_TIMEOUT
             raise self.printer.command_error(reason)
-        # self.gcode.respond_info("probe at %.3f,%.3f is z=%.6f"
         self.gcode.respond_info("Probe made contact at %.6f,%.6f,%.6f"% (epos[0], epos[1], epos[2]))
         return epos[:3]
 
@@ -245,11 +230,9 @@ class PrinterProbeMultiAxis:
         if 'axis_minimum' not in kin_status or 'axis_minimum' not in kin_status:
             raise self.gcode.error("Tools calibrate only works with cartesian kinematics")
         if sense > 0:
-            pos[axis] = min(pos[axis] + max_distance,
-                            kin_status['axis_maximum'][axis])
+            pos[axis] = min(pos[axis] + max_distance, kin_status['axis_maximum'][axis])
         else:
-            pos[axis] = max(pos[axis] - max_distance,
-                            kin_status['axis_minimum'][axis])
+            pos[axis] = max(pos[axis] - max_distance, kin_status['axis_minimum'][axis])
         return pos
 
     def _move(self, coord, speed):
@@ -326,8 +309,7 @@ class ProbeEndstopWrapper:
         pin_params = ppins.lookup_pin(pin, can_invert=True, can_pullup=True)
         mcu = pin_params['chip']
         self.mcu_endstop = mcu.setup_pin('endstop', pin_params)
-        self.printer.register_event_handler('klippy:mcu_identify',
-                                            self._handle_mcu_identify)
+        self.printer.register_event_handler('klippy:mcu_identify', self._handle_mcu_identify)
         # Wrappers
         self.get_mcu = self.mcu_endstop.get_mcu
         self.add_stepper = self.mcu_endstop.add_stepper
