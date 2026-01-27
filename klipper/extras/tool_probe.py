@@ -17,8 +17,8 @@ class ToolProbe:
         # # Common probe implementation helpers
         # self.cmd_helper = probe.ProbeCommandHelper(config, self, self.mcu_endstop.query_endstop)
         # self.probe_offsets = probe.ProbeOffsetsHelper(config)
-        # self.param_helper = probe.ProbeParameterHelper(config)
-        # self.homing_helper = probe.HomingViaProbeHelper(config, self, self.param_helper)
+        self.param_helper = probe.ProbeParameterHelper(config)
+        self.homing_helper = probe.HomingViaProbeHelper(config, self, self.param_helper)
         self.probe_session = probe.ProbeSessionHelper(config, self.param_helper, self.homing_helper.start_probe_session)
         # Crash detection stuff
         pin = config.get('pin')
