@@ -33,8 +33,7 @@ class ToolProbeEndstop:
 
         self.crash_mintime = config.getfloat('crash_mintime', 0.5, above=0.)
         self.crash_gcode = self.gcode_macro.load_template(config, 'crash_gcode', '')
-        self.printer.register_event_handler("klippy:connect",
-                                            self._handle_connect)
+        self.printer.register_event_handler("klippy:connect", self._handle_connect)
         # Register PROBE/QUERY_PROBE commands
         self.gcode = self.printer.lookup_object('gcode')
         self.gcode.register_command('SET_ACTIVE_TOOL_PROBE', self.cmd_SET_ACTIVE_TOOL_PROBE,
@@ -226,15 +225,18 @@ class EndstopRouter:
         self._steppers.append(stepper)
         for m in self._mcus:
             m.add_stepper(stepper)
+    
     def get_steppers(self):
         return list(self._steppers)
 
     def on_error(self, *args, **kwargs):
         raise self.printer.command_error("Cannot interact with probe - no active tool probe.")
+    
     def query_endstop(self, print_time):
         if not self.active_mcu:
             raise self.printer.command_error("Cannot query endstop - no active tool probe.")
         return self.active_mcu.query_endstop(print_time)
+    
     def get_position_endstop(self):
         if not self.active_mcu:
             # This will get picked up by the endstop, and is static
