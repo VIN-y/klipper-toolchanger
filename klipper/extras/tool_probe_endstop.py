@@ -23,7 +23,8 @@ class ToolProbeEndstop:
         self.mcu_probe = EndstopRouter(self.printer)
         self.param_helper = probe.ProbeParameterHelper(config)
         self.homing_helper = probe.HomingViaProbeHelper(config, self.mcu_probe, self.param_helper)
-        self.probe_session = probe.ProbeSessionHelper(config, self.param_helper, self.homing_helper.start_probe_session)
+        # self.probe_session = probe.ProbeSessionHelper(config, self.param_helper, self.homing_helper.start_probe_session)
+        self.probe_session = probe.ProbeEndstopSessionHelper(config, self.param_helper, self.homing_helper.start_probe_session)
         self.cmd_helper = probe.ProbeCommandHelper(config, self, self.mcu_probe.query_endstop)
 
         # Emulate the probe object, since others rely on this.
