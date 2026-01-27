@@ -37,7 +37,7 @@ class ToolProbe:
         self.endstop.note_probe_triggered(self, eventtime, is_triggered)
 
     def get_probe_params(self, gcmd=None):
-        return self.probe_session.get_probe_params(gcmd)
+        return self.param_helper.get_probe_params(gcmd)
     
     def get_offsets(self):
         return self.probe_offsets.get_offsets()
