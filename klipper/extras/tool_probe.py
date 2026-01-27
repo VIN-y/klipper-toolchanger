@@ -13,14 +13,7 @@ class ToolProbe:
         self.name = config.get_name()
         self.mcu_probe = probe.ProbeEndstopWrapper(config)
         self.probe_offsets = probe.ProbeOffsetsHelper(config)
-        # self.probe_session = ProbeSessionHelper(config, self.mcu_probe)
-        
-        # # Common probe implementation helpers
-        # self.cmd_helper = probe.ProbeCommandHelper(config, self, self.mcu_endstop.query_endstop)
-        # self.probe_offsets = probe.ProbeOffsetsHelper(config)
-        self.param_helper = probe.ProbeParameterHelper(config)
-        self.homing_helper = probe.HomingViaProbeHelper(config, self, self.param_helper)
-        self.probe_session = probe.ProbeSessionHelper(config, self.param_helper, self.homing_helper.start_probe_session)
+        self.probe_session = ProbeSessionHelper(config, self.mcu_probe)
 
         # Crash detection stuff
         pin = config.get('pin')
@@ -29,7 +22,7 @@ class ToolProbe:
         ppins.allow_multi_use_pin(pin.replace('^', '').replace('!', ''))
         buttons.register_buttons([pin], self._button_handler)
 
-        #Register with the endstop
+        # Register with the endstop
         self.endstop = self.printer.load_object(config, "tool_probe_endstop")
         self.endstop.add_probe(config, self)
 
@@ -37,7 +30,7 @@ class ToolProbe:
         self.endstop.note_probe_triggered(self, eventtime, is_triggered)
 
     def get_probe_params(self, gcmd=None):
-        return self.param_helper.get_probe_params(gcmd)
+        return self.probe_session.get_probe_params(gcmd)
     
     def get_offsets(self):
         return self.probe_offsets.get_offsets()
@@ -81,15 +74,18 @@ class ProbeSessionHelper:
         # Register event handlers
         self.printer.register_event_handler("gcode:command_error",
                                             self._handle_command_error)
+    
     def _handle_command_error(self):
         if self.multi_probe_pending:
             try:
                 self.end_probe_session()
             except:
                 logging.exception("Multi-probe end")
+    
     def _probe_state_error(self):
         raise self.printer.command_error(
             "Internal probe error - start/end probe session mismatch")
+    
     def start_probe_session(self, gcmd):
         if self.multi_probe_pending:
             self._probe_state_error()
@@ -97,12 +93,14 @@ class ProbeSessionHelper:
         self.multi_probe_pending = True
         self.results = []
         return self
+    
     def end_probe_session(self):
         if not self.multi_probe_pending:
             self._probe_state_error()
         self.results = []
         self.multi_probe_pending = False
         self.mcu_probe.multi_probe_end()
+    
     def get_probe_params(self, gcmd=None):
         if gcmd is None:
             gcmd = self.dummy_gcode_cmd
@@ -123,6 +121,7 @@ class ProbeSessionHelper:
                 'samples_tolerance': samples_tolerance,
                 'samples_tolerance_retries': samples_retries,
                 'samples_result': samples_result}
+    
     def _probe(self, speed):
         toolhead = self.printer.lookup_object('toolhead')
         curtime = self.printer.get_reactor().monotonic()
